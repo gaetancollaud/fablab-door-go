@@ -3,18 +3,26 @@ package main
 import (
 	"log"
 	"./rfid"
+	"./config"
 	"os"
 	"bufio"
 )
 
 func main() {
-	if(len(os.Args)<2){
-		log.Fatal("Usage : fablab-door PORT")
-	}
+	//if(len(os.Args)<2){
+	//	log.Fatal("Usage : fablab-door PORT")
+	//}
+	//
+	//portName := os.Args[1]
 
-	portName := os.Args[1]
+	configuration := config.GetConfig()
 
-	rfidReader, err := rfid.Start(portName)
+	users := config.GetUsers()
+
+	log.Println("Users ", users)
+
+
+	rfidReader, err := rfid.Start(configuration.Serial)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,5 +37,6 @@ func main() {
 	bufio.NewReader(os.Stdin).ReadString('\n')
 	log.Println("Exiting")
 }
+
 
 

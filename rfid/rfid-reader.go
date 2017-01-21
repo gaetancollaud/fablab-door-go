@@ -62,5 +62,5 @@ func AnalyseString(buffer bytes.Buffer) (bytes.Buffer) {
 }
 
 func HandleId(id string) {
-	log.Printf("ID: %q", id)
+	log.Printf("Read TAG ID: %s", id)
 }
