@@ -3,25 +3,30 @@ package main
 import (
 	"log"
 	"./rfid"
-	"time"
+	"os"
+	"bufio"
 )
 
 func main() {
-	reader, err := rfid.Start("COM4")
+	if(len(os.Args)<2){
+		log.Fatal("Usage : fablab-door PORT")
+	}
+
+	portName := os.Args[1]
+
+	rfidReader, err := rfid.Start(portName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer reader.Stop()
+	defer rfidReader.Stop()
 
-	go reader.Read()
+	go rfidReader.Read()
 
-	log.Printf("Started main")
+	log.Printf("All services statted")
 
-	log.Println("Waiting for input")
-	for true {
-		time.Sleep(1000 * time.Millisecond)
-	}
+	log.Println("Press enter to quit")
+	bufio.NewReader(os.Stdin).ReadString('\n')
 	log.Println("Exiting")
 }
 

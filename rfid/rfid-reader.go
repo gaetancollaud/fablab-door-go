@@ -17,7 +17,7 @@ func Start(port string) (*Rfid, error) {
 	rfid := new(Rfid)
 	rfid.config = &serial.Config{Name: port, Baud: 9600}
 	rfid.openPort, err = serial.OpenPort(rfid.config)
-	log.Printf("Port %q open", port)
+	log.Printf("Port %s open", port)
 	if err != nil {
 		return nil, err
 	}
