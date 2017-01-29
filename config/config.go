@@ -3,8 +3,10 @@ package config
 import (
 	"os"
 	"encoding/json"
-	"log"
+	"../logger"
 )
+
+var configLogger = logger.GetLogger("Config");
 
 const CONFIG_FILE = "config.json"
 const USERS_FILE = "users.json"
@@ -16,7 +18,13 @@ type User struct {
 
 type Configuration struct {
 	Serial   string
-	Endpoint string
+	FablabEndpoint ConfigurationEndpoint
+}
+
+type ConfigurationEndpoint struct {
+	Url string
+	User string
+	Password string
 }
 
 func GetConfig() (*Configuration) {
@@ -26,7 +34,7 @@ func GetConfig() (*Configuration) {
 	decoder := json.NewDecoder(file)
 	err := decoder.Decode(&config)
 	if err != nil {
-		log.Fatal("Cannot read config file config.json")
+		configLogger.Fatal("Cannot read config file config.json")
 	}
 
 	return config
@@ -40,7 +48,7 @@ func GetUsers() ([]User) {
 		decoder := json.NewDecoder(file)
 		err := decoder.Decode(&users)
 		if err != nil {
-			log.Fatal("Cannot read users file ", USERS_FILE)
+			configLogger.Fatal("Cannot read users file ", USERS_FILE)
 		}
 	}
 

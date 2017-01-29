@@ -1,54 +1,62 @@
 package rfid
 
 import (
-	"log"
 	"github.com/tarm/serial"
 	"bytes"
 	"strings"
+	"../config"
+	"../logger"
+	"github.com/Sirupsen/logrus"
 )
 
-type Rfid struct {
+type RfidReader struct {
 	config   *serial.Config
 	openPort *serial.Port
+	log *logrus.Entry
+	rfidChannel chan string
 }
 
-func Start(port string) (*Rfid, error) {
+func New(rfidChannel chan string) (*RfidReader, error) {
 	var err error
-	rfid := new(Rfid)
-	rfid.config = &serial.Config{Name: port, Baud: 9600}
+	serialPort := config.GetConfig().Serial
+
+	rfid := new(RfidReader)
+	rfid.log = logger.GetLogger("RfidReader")
+	rfid.rfidChannel = rfidChannel
+	rfid.config = &serial.Config{Name: serialPort, Baud: 9600}
 	rfid.openPort, err = serial.OpenPort(rfid.config)
-	log.Printf("Port %s open", port)
+	rfid.log.Printf("Port %s open", serialPort)
 	if err != nil {
 		return nil, err
 	}
 	return rfid, nil
 }
 
-func (rfid *Rfid)Read() {
+func (rfid *RfidReader)Read() {
 	var buffer bytes.Buffer
 	buf := make([]byte, 128)
 	for true {
 		n, err := rfid.openPort.Read(buf)
 		if err != nil {
-			log.Fatal(err)
+			rfid.log.Fatal(err)
 		}
 		buffer.Write(buf[:n])
 
-		buffer = AnalyseString(buffer);
+		buffer = rfid.analyseString(buffer);
 	}
 }
 
-func (rfid *Rfid)Stop() {
+func (rfid *RfidReader)Stop() {
 	rfid.openPort.Close()
 }
 
-func AnalyseString(buffer bytes.Buffer) (bytes.Buffer) {
+func (rfid *RfidReader)analyseString(buffer bytes.Buffer) (bytes.Buffer) {
 	str := buffer.String()
 	index := strings.Index(str, "\r\n")
 	if (index != -1) {
 		id := str[:index]
 		if (len(id) > 0) {
-			HandleId(id);
+			rfid.handleId(id);
 		}
 		if (len(str) == index + 2) {
 			str = ""
@@ -61,6 +69,7 @@ func AnalyseString(buffer bytes.Buffer) (bytes.Buffer) {
 	return ret;
 }
 
-func HandleId(id string) {
-	log.Printf("Read TAG ID: %s", id)
+func (rfid *RfidReader) handleId(id string) {
+	rfid.log.Debug("Read TAG ID: %s", id)
+	rfid.rfidChannel <- id
 }

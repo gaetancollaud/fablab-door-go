@@ -1,41 +1,48 @@
 package main
 
 import (
-	"log"
 	"./rfid"
-	"./config"
+	"./logger"
+	"./manager"
+	"./actuator"
 	"os"
 	"bufio"
 )
 
 func main() {
+
+	logger.ConfigureLogger()
+
+
 	//if(len(os.Args)<2){
 	//	log.Fatal("Usage : fablab-door PORT")
 	//}
 	//
 	//portName := os.Args[1]
+	rfIdChannel := make(chan string)
+	commandChannel := make(chan actuator.CommandType)
 
-	configuration := config.GetConfig()
+	manager := manager.New(rfIdChannel, commandChannel);
+	rfidReader, err := rfid.New(rfIdChannel)
+	actuator := actuator.New(commandChannel)
 
-	users := config.GetUsers()
+	logInstance := logger.GetLogger("main")
 
-	log.Println("Users ", users)
-
-
-	rfidReader, err := rfid.Start(configuration.Serial)
 	if err != nil {
-		log.Fatal(err)
+		logInstance.Fatal(err)
 	}
 
 	defer rfidReader.Stop()
 
 	go rfidReader.Read()
+	go manager.Run()
+	go actuator.Run()
 
-	log.Printf("All services statted")
+	logInstance.Printf("All services statted")
 
-	log.Println("Press enter to quit")
+	logInstance.Println("Press enter to quit")
 	bufio.NewReader(os.Stdin).ReadString('\n')
-	log.Println("Exiting")
+	logInstance.Println("Exiting")
 }
 
 
