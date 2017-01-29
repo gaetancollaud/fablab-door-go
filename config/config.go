@@ -19,6 +19,7 @@ type User struct {
 type Configuration struct {
 	Serial   string
 	FablabEndpoint ConfigurationEndpoint
+	Ipx800Endpoint ConfigurationEndpoint
 }
 
 type ConfigurationEndpoint struct {
